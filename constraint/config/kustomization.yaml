@@ -1,9 +1,15 @@
-# create a multi-version CRD via kustomize because Kubebuilder v1 doesn't support multi-version
-# CRDs
+# Sets the version: field to `v1beta1`.
+# It's not obvious how to do this with kubebuilder annotations.
 
 resources:
-- crds/templates_v1beta1_constrainttemplate.yaml
+- crds/templates.gatekeeper.sh_constrainttemplates.yaml
 
-patchesStrategicMerge:
-- crd_patch.yaml
-
+patches:
+- target:
+    group: apiextensions.k8s.io
+    version: v1beta1
+    kind: CustomResourceDefinition
+    name: constrainttemplates.templates.gatekeeper.sh
+  patch: |-
+    - op: remove
+      path: /spec/version

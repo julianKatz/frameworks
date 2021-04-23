@@ -29,23 +29,23 @@ install: manifests
 	kubectl apply -f config/crds
 
 # Generate manifests e.g. CRD, RBAC etc.
-manifests: buildutils
-	controller-gen all
+manifests: __controller-gen
+	$(CONTROLLER_GEN) crd:crdVersions="v1beta1",allowDangerousTypes="true" paths="./pkg/..." output:crd:artifacts:config=config/crds
 	kustomize build config -o deploy/crds.yaml
 
 lint:
 	golangci-lint -v run ./... --timeout 5m
 
-# Generate code
-generate: buildutils
-ifndef GOPATH
-	$(error GOPATH not defined, please define GOPATH. Run "go help gopath" to learn more about GOPATH)
-endif
-	export GOROOT=$(go env root)
-	GO111MODULE=off go generate ./pkg/...
+TOOLING_IMAGE := gatekeeper-tooling
+__tooling-image:
+	docker build . \
+		--tag $(TOOLING_IMAGE) \
+		--file buildutils/Dockerfile
 
-# find or download controller-gen
-# download controller-gen if necessary
-.PHONY: buildutils
-buildutils:
-	cd buildutils && ./buildutils.sh
+__controller-gen: __tooling-image
+# __controller-gen:
+CONTROLLER_GEN=docker run -v $(shell pwd):/constraint $(TOOLING_IMAGE) controller-gen
+
+# Generate code
+generate: __controller-gen
+	$(CONTROLLER_GEN) object:headerFile=./hack/boilerplate.go.txt paths="./pkg/..."

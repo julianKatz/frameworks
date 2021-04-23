@@ -44,6 +44,8 @@ type Names struct {
 }
 
 type Validation struct {
+	// +kubebuilder:validation:Schemaless
+	// +kubebuilder:validation:Type=object
 	OpenAPIV3Schema *apiextensionsv1beta1.JSONSchemaProps `json:"openAPIV3Schema,omitempty"`
 }
 
@@ -80,6 +82,7 @@ type ConstraintTemplateStatus struct {
 // +genclient
 // +genclient:nonNamespaced
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
+// +kubebuilder:subresource:status
 
 // ConstraintTemplate is the Schema for the constrainttemplates API
 // +k8s:openapi-gen=true
